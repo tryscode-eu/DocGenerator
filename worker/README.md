@@ -178,6 +178,31 @@ pas réservés à cette preuve. L'image Harmony de preuve peut être remplacée 
 MinIO ; elle ne prouve ni les ACL, ni la sauvegarde, ni la restauration, ni le
 réseau d'un environnement de recette.
 
+Une seconde preuve locale exerce le cycle d'échec documentaire sur un vrai
+RabbitMQ 3.13.7 épinglé par digest. Elle construit l'image du worker courant,
+démarre le broker sur un réseau Docker interne sans port hôte, force trois
+échecs de rendu, observe les deux passages par la quorum queue avec leurs
+`x-death`, puis vérifie le confirm de chaque publication avant l'ACK source et
+l'enveloppe archive exacte. Le corps pédagogique, les headers entrants et les
+identifiants d'accès de preuve sont recherchés dans les éléments de preuve et
+font échouer l'exécution s'ils y apparaissent. Après autorisation explicite, le
+harnais corrèle l'empreinte avec la source de test conservée, crée un nouvel
+identifiant de job et vérifie un rendu PDF réussi. Tous les conteneurs, le
+réseau, le volume RabbitMQ et l'image worker temporaires sont supprimés, y
+compris sur erreur :
+
+```sh
+sh worker/scripts/run_rabbitmq_archive_proof.sh
+```
+
+La sortie JSON structurée marque les critères 173-01 à 173-10 et 173-12 comme
+réussis seulement après leurs assertions réelles. Le statut global reste
+`partial` : le callback local valide le contrat du worker mais n'est pas
+Harmony, la visibilité Sauron (173-11) n'est pas exécutée et le rejeu (173-13)
+ne couvre que la frontière worker avec une source de test conservée. Un rejeu
+produit doit rester autorisé côté Sauron et republié depuis la source d'autorité
+de l'outbox Harmony. Cette preuve locale ne vaut donc pas recette intégrée.
+
 Depuis la racine du dépôt, installer le lock et le package :
 
 ```sh

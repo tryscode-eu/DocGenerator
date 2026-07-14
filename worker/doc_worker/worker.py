@@ -165,7 +165,9 @@ class DocumentWorker:
             if (
                 death.get("queue") == self.settings.document_retry_queue
                 and death.get("reason") == "expired"
-                and type(count) is int
+                # AMQP 64-bit integers decode to pika.compat.long, an int subclass.
+                and isinstance(count, int)
+                and not isinstance(count, bool)
                 and count >= 1
             ):
                 return value
