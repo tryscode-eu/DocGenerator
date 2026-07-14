@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tryscode-document-worker"
+version = "0.1.0"
+description = "RabbitMQ document rendering worker for the TrysCode platform"
+readme = "README.md"
+requires-python = "==3.12.*"
+license = "LicenseRef-Proprietary"
+authors = [
+  { name = "Baptiste RENNESON BOUTARD" },
+]
+dependencies = [
+  "boto3==1.43.47",
+  "pika==1.4.1",
+  "pydantic==2.13.4",
+  "pydantic-settings==2.14.2",
+  "reportlab==4.5.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "build==1.3.0",
+  "pypdf==5.9.0",
+  "pytest==8.4.2",
+  "ruff==0.15.10",
+  "setuptools==80.9.0",
+  "wheel==0.45.1",
+]
+
+[project.scripts]
+tryscode-document-worker = "doc_worker.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["doc_worker*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
