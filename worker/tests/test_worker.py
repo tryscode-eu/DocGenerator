@@ -637,6 +637,12 @@ def test_attempt_requires_a_bounded_integer_and_retry_dead_letter_proof():
     body = b'{"action":"render_subject_pdf"}'
 
     assert worker._attempt(_properties(_retry_headers(worker, body, 2)), body) == 2
+    broker_headers = _retry_headers(worker, body, 2)
+    broker_headers["x-death"][0]["count"] = pika.compat.long(1)
+    assert worker._attempt(_properties(broker_headers), body) == 2
+    boolean_death = _retry_headers(worker, body, 2)
+    boolean_death["x-death"][0]["count"] = True
+    assert worker._attempt(_properties(boolean_death), body) == 0
     assert (
         worker._attempt(
             _properties(_retry_headers(worker, body, 2)),
