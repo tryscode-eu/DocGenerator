@@ -33,8 +33,19 @@ jobs:
         run: sh .github/scripts/scan_high_confidence_secrets.sh
       - name: Lint and format check
         run: |
-          python -m ruff check main.py tests worker/doc_worker worker/tests worker/scripts/prove_minio_artifact_chain.py
-          python -m ruff format --check main.py tests worker/doc_worker worker/tests worker/scripts/prove_minio_artifact_chain.py
+          python -m ruff check main.py tests worker/doc_worker worker/tests \
+            worker/scripts/prove_minio_artifact_chain.py \
+            worker/scripts/prove_rabbitmq_archive.py
+          python -m ruff format --check main.py tests worker/doc_worker worker/tests \
+            worker/scripts/prove_minio_artifact_chain.py \
+            worker/scripts/prove_rabbitmq_archive.py
+      - name: Validate proof scripts
+        run: |
+          python -m py_compile \
+            worker/scripts/prove_minio_artifact_chain.py \
+            worker/scripts/prove_rabbitmq_archive.py
+          sh -n worker/scripts/run_minio_artifact_proof.sh
+          sh -n worker/scripts/run_rabbitmq_archive_proof.sh
       - name: Test ODT engine and document worker
         run: PYTHONDONTWRITEBYTECODE=1 python -m pytest -q -p no:cacheprovider tests worker/tests
       - name: Compile Python sources
@@ -42,6 +53,7 @@ jobs:
           python -m compileall -q
           main.py tests worker/doc_worker worker/tests
           worker/scripts/prove_minio_artifact_chain.py
+          worker/scripts/prove_rabbitmq_archive.py
       - name: Build worker wheel
         run: python -m build --no-isolation --wheel --outdir /tmp/docgenerator-dist worker
       - name: Build worker image

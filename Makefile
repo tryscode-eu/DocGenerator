@@ -5,15 +5,26 @@ DIST_DIR ?= /tmp/tryscode-docgenerator-dist
 ODT_TEMPLATE ?= templates/test_template.odt
 ODT_OUTPUT ?= test_template.pdf
 DATA_FILE ?=
+PYTHON_LINT_PATHS := main.py tests worker/doc_worker worker/tests
+PROOF_PYTHON_SCRIPTS := \
+	worker/scripts/prove_minio_artifact_chain.py \
+	worker/scripts/prove_rabbitmq_archive.py
+PROOF_SHELL_SCRIPTS := \
+	worker/scripts/run_minio_artifact_proof.sh \
+	worker/scripts/run_rabbitmq_archive_proof.sh
 
-.PHONY: install lint test scan-secrets build-package docker-worker run-worker run-odt
+.PHONY: install lint check-scripts test scan-secrets build-package docker-worker run-worker run-odt
 
 install:
 	PYTHON="$(PYTHON)" VENV="$(VENV)" sh install.sh
 
-lint:
-	$(VENV_PYTHON) -m ruff check main.py tests worker/doc_worker worker/tests worker/scripts/prove_minio_artifact_chain.py
-	$(VENV_PYTHON) -m ruff format --check main.py tests worker/doc_worker worker/tests worker/scripts/prove_minio_artifact_chain.py
+lint: check-scripts
+	$(VENV_PYTHON) -m ruff check $(PYTHON_LINT_PATHS) $(PROOF_PYTHON_SCRIPTS)
+	$(VENV_PYTHON) -m ruff format --check $(PYTHON_LINT_PATHS) $(PROOF_PYTHON_SCRIPTS)
+
+check-scripts:
+	$(VENV_PYTHON) -m py_compile $(PROOF_PYTHON_SCRIPTS)
+	@for script in $(PROOF_SHELL_SCRIPTS); do sh -n "$$script"; done
 
 test:
 	PYTHONDONTWRITEBYTECODE=1 $(VENV_PYTHON) -m pytest -q -p no:cacheprovider tests worker/tests
