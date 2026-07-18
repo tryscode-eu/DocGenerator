@@ -3,7 +3,7 @@ set -eu
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 WORKER_DIR=$(dirname -- "$SCRIPT_DIR")
-HARMONY_DIR=${HARMONY_DIR:-"$WORKER_DIR/../../FW_Harmony"}
+HARMONY_DIR=${HARMONY_DIR:-"$WORKER_DIR/../../../services/FW_Harmony"}
 MINIO_IMAGE=${MINIO_IMAGE:-"minio/minio:RELEASE.2025-09-07T16-13-09Z"}
 PROOF_IMAGE=${PROOF_IMAGE:-"tryscode/harmony:artifact-dev"}
 
