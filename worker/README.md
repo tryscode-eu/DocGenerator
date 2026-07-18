@@ -168,7 +168,7 @@ réseau, un volume et un bucket aux noms jetables, puis les supprime même en ca
 d'échec :
 
 ```sh
-docker build -t tryscode/harmony:artifact-dev ../../FW_Harmony
+docker build -t tryscode/harmony:artifact-dev ../../../services/FW_Harmony
 sh scripts/run_minio_artifact_proof.sh
 ```
 
