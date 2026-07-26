@@ -8,6 +8,11 @@ contrôlés. Il génère des PDF A4 TrysCode avec ReportLab et les écrit dans
 `DOCUMENT_OUTPUT_DIR` : sujet, certificat de réussite, attestation de
 formation, carte apprenant imprimable et compte rendu de revue humaine.
 
+Le mode par défaut `safe_idle` maintient seulement les sondes et un heartbeat.
+Il ne consomme aucun message et ne produit aucun document. Le mode
+`WORKER_MODE=active` doit être demandé explicitement avec toutes les
+dépendances et tous les secrets requis.
+
 Le message attendu est de la forme :
 
 ```json

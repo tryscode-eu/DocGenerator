@@ -18,5 +18,8 @@ RUN python -m pip install --no-cache-dir --require-hashes -r requirements.lock \
 
 USER 10001:10001
 VOLUME ["/data/documents"]
+EXPOSE 8080
+HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
+    CMD ["python", "-c", "from urllib.request import urlopen; assert urlopen('http://127.0.0.1:8080/health/live', timeout=2).status == 200"]
 
 CMD ["python", "-m", "doc_worker.main"]

@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: doc-generator-candidate
+  labels:
+    app.kubernetes.io/name: doc-generator
+    app.kubernetes.io/part-of: tryscode
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: doc-generator
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: doc-generator
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 20
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: worker
+          image: registry.invalid/tryscode/doc-generator@sha256:0000000000000000000000000000000000000000000000000000000000000000
+          env:
+            - name: WORKER_MODE
+              value: safe_idle
+            - name: HEALTH_HOST
+              value: 0.0.0.0
+            - name: TRYSCODE_ENVIRONMENT
+              value: staging
+            - name: SERVICE_VERSION
+              value: 0.1.0
+            - name: SERVICE_COMMIT
+              value: __GIT_SHA__
+          ports:
+            - name: health
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: health
+            periodSeconds: 5
+            timeoutSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: health
+            periodSeconds: 10
+            timeoutSeconds: 2
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 192Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: doc-generator
+  labels:
+    app.kubernetes.io/name: doc-generator
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: doc-generator
+  ports:
+    - name: health
+      port: 8080
+      targetPort: health

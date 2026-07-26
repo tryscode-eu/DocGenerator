@@ -741,11 +741,20 @@ def test_start_applies_bounded_connection_parameters_and_backoff():
 
 def test_settings_reject_invalid_archive_bounds_and_ambiguous_queues():
     with pytest.raises(ValidationError):
-        Settings(rabbitmq_url="amqp://rabbit", document_archive_ttl_ms=59_999)
+        Settings(
+            worker_mode="active",
+            rabbitmq_url="amqp://rabbit",
+            document_archive_ttl_ms=59_999,
+        )
     with pytest.raises(ValidationError):
-        Settings(rabbitmq_url="amqp://rabbit", document_archive_max_messages=0)
+        Settings(
+            worker_mode="active",
+            rabbitmq_url="amqp://rabbit",
+            document_archive_max_messages=0,
+        )
 
     settings = Settings(
+        worker_mode="active",
         rabbitmq_url="amqp://rabbit",
         document_retry_queue="document_tasks",
     )
@@ -755,6 +764,7 @@ def test_settings_reject_invalid_archive_bounds_and_ambiguous_queues():
     with pytest.raises(RuntimeError, match="STORAGE_PREFIX"):
         validate_settings(
             Settings(
+                worker_mode="active",
                 rabbitmq_url="amqp://rabbit",
                 document_storage_prefix="../documents",
             )
@@ -762,6 +772,7 @@ def test_settings_reject_invalid_archive_bounds_and_ambiguous_queues():
     with pytest.raises(RuntimeError, match="STACK_TIMEOUT"):
         validate_settings(
             Settings(
+                worker_mode="active",
                 rabbitmq_url="amqp://rabbit",
                 rabbitmq_socket_timeout_seconds=5,
                 rabbitmq_stack_timeout_seconds=5,
@@ -770,6 +781,7 @@ def test_settings_reject_invalid_archive_bounds_and_ambiguous_queues():
     with pytest.raises(RuntimeError, match="callback Harmony"):
         validate_settings(
             Settings(
+                worker_mode="active",
                 rabbitmq_url="amqp://rabbit",
                 document_retry_signing_key=RETRY_SIGNING_KEY,
                 harmony_callback_url="https://user:secret@harmony/callback",
@@ -779,6 +791,7 @@ def test_settings_reject_invalid_archive_bounds_and_ambiguous_queues():
     with pytest.raises(RuntimeError, match="callback Harmony"):
         validate_settings(
             Settings(
+                worker_mode="active",
                 rabbitmq_url="amqp://rabbit",
                 document_retry_signing_key=RETRY_SIGNING_KEY,
                 harmony_callback_url="https://harmony/api/v1/jobs/callback",
@@ -786,11 +799,12 @@ def test_settings_reject_invalid_archive_bounds_and_ambiguous_queues():
             )
         )
     with pytest.raises(RuntimeError, match="requis"):
-        validate_settings(Settings(rabbitmq_url="amqp://rabbit"))
+        validate_settings(Settings(worker_mode="active", rabbitmq_url="amqp://rabbit"))
 
     with pytest.raises(RuntimeError, match="RETRY_SIGNING_KEY"):
         validate_settings(
             Settings(
+                worker_mode="active",
                 rabbitmq_url="amqp://rabbit",
                 harmony_callback_url="https://harmony/api/v1/jobs/callback",
                 harmony_service_token="valid-token",
@@ -800,6 +814,7 @@ def test_settings_reject_invalid_archive_bounds_and_ambiguous_queues():
     with pytest.raises(RuntimeError, match="distinct"):
         validate_settings(
             Settings(
+                worker_mode="active",
                 rabbitmq_url="amqp://rabbit",
                 document_retry_signing_key=RETRY_SIGNING_KEY,
                 harmony_callback_url="https://harmony/api/v1/jobs/callback",
