@@ -758,6 +758,7 @@ def _settings(
     output_dir: Path,
 ) -> Settings:
     settings = Settings(
+        worker_mode="active",
         rabbitmq_url=rabbitmq_url,
         rabbitmq_socket_timeout_seconds=3,
         rabbitmq_stack_timeout_seconds=5,

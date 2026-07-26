@@ -1,6 +1,7 @@
 import re
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -15,6 +16,14 @@ SAFE_DOCUMENT_STORAGE_PREFIX = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
 
 
 class Settings(BaseSettings):
+    worker_mode: Literal["active", "safe_idle"] = "safe_idle"
+    service_version: str = "0.1.0"
+    service_commit: str = "unknown"
+    tryscode_environment: str = "local"
+    health_host: str = "127.0.0.1"
+    health_port: int = Field(default=8080, ge=1, le=65_535)
+    heartbeat_seconds: float = Field(default=15.0, ge=0.05, le=300)
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
     rabbitmq_url: str = ""
     rabbitmq_socket_timeout_seconds: float = Field(default=3.0, gt=0, le=10)
     rabbitmq_stack_timeout_seconds: float = Field(default=5.0, gt=0, le=15)
@@ -68,6 +77,28 @@ def get_settings() -> Settings:
 
 
 def validate_settings(settings: Settings) -> None:
+    """Valide la configuration avant tout accès au broker ou au stockage.
+
+    Le mode ``safe_idle`` ne requiert aucun secret ou service externe et ne
+    produit aucun document. Le mode actif conserve toutes les validations
+    historiques ci-dessous.
+    """
+
+    metadata = (
+        settings.service_version,
+        settings.service_commit,
+        settings.tryscode_environment,
+    )
+    if any(
+        not value
+        or len(value) > 128
+        or not value.isascii()
+        or not re.fullmatch(r"[A-Za-z0-9_.-]+", value)
+        for value in metadata
+    ):
+        raise RuntimeError("Les métadonnées du runtime sont invalides")
+    if settings.worker_mode == "safe_idle":
+        return
     if not settings.rabbitmq_url:
         raise RuntimeError("Configuration incomplète : RABBITMQ_URL est requis")
     if settings.rabbitmq_stack_timeout_seconds <= settings.rabbitmq_socket_timeout_seconds:

@@ -54,13 +54,36 @@ jobs:
           main.py tests worker/doc_worker worker/tests
           worker/scripts/prove_minio_artifact_chain.py
           worker/scripts/prove_rabbitmq_archive.py
+      - name: Validate the inactive Kubernetes candidate
+        run: >-
+          docker run --rm --read-only --cap-drop ALL --security-opt no-new-privileges
+          -v "$PWD:/work:ro"
+          ghcr.io/yannh/kubeconform:v0.7.0@sha256:85dbef6b4b312b99133decc9c6fc9495e9fc5f92293d4ff3b7e1b30f5611823c
+          -strict -summary /work/deploy/kubernetes/foundation.yaml
       - name: Build worker wheel
         run: python -m build --no-isolation --wheel --outdir /tmp/docgenerator-dist worker
       - name: Build worker image
-        run: docker build --file worker/Dockerfile --tag docgenerator-worker:test worker
+        run: |
+          docker build --check --file worker/Dockerfile worker
+          docker build --file worker/Dockerfile --tag docgenerator-worker:test worker
       - name: Verify worker image boundaries
         run: |
           test "$(docker image inspect --format '{{.Config.User}}' docgenerator-worker:test)" = "10001:10001"
           test "$(docker image inspect --format '{{range .Config.Env}}{{println .}}{{end}}' docgenerator-worker:test | grep '^DOCUMENT_OUTPUT_DIR=')" = "DOCUMENT_OUTPUT_DIR=/data/documents"
           docker run --rm --entrypoint python docgenerator-worker:test -c \
             "import importlib.util, os; assert (os.getuid(), os.getgid()) == (10001, 10001); assert os.access('/data/documents', os.W_OK); assert importlib.util.find_spec('pytest') is None; import doc_worker.main"
+      - name: Smoke worker without external effects
+        run: |
+          id="$(docker run -d --read-only --network none --cap-drop ALL --security-opt no-new-privileges --tmpfs /data/documents:rw,nosuid,nodev,noexec,size=16m -e WORKER_MODE=safe_idle -e HEALTH_HOST=0.0.0.0 -e TRYSCODE_ENVIRONMENT=ci docgenerator-worker:test)"
+          trap 'docker rm -f "${id}" >/dev/null 2>&1 || true' EXIT
+          ready=false
+          for _ in $(seq 1 30); do
+            if docker exec "${id}" python -c "from urllib.request import urlopen; assert urlopen('http://127.0.0.1:8080/health/ready', timeout=2).status == 200" 2>/dev/null; then
+              ready=true
+              break
+            fi
+            sleep 1
+          done
+          test "${ready}" = true
+          test "$(docker exec "${id}" id -u)" = 10001
+          docker stop --timeout 10 "${id}"

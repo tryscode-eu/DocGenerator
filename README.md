@@ -85,6 +85,20 @@ cp worker/.env.example worker/.env
 make run-worker
 ```
 
+Pour qualifier le runtime sans effet externe, ne renseigner aucun secret et
+lancer :
+
+```sh
+cd worker
+WORKER_MODE=safe_idle python -m doc_worker.main
+```
+
+Ce mode fail-closed est le mode par défaut. Il expose `/health/live`,
+`/health/ready`, `/health/version`, `/health/status` et `/metrics` sur
+`127.0.0.1:8080`, refuse tout `POST` sans lire son corps et n'accède ni à
+RabbitMQ, ni à Harmony, ni au stockage. Le consumer réel exige
+`WORKER_MODE=active` et la configuration complète.
+
 `HARMONY_CALLBACK_URL` et le token de service dédié sont obligatoires. Les
 retries internes exigent aussi une clé HMAC dédiée
 `DOCUMENT_RETRY_SIGNING_KEY`. Les
