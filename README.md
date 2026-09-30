@@ -19,10 +19,15 @@ documentées dans [MIGRATION_PROVENANCE.md](MIGRATION_PROVENANCE.md).
 - Docker pour construire l'image du worker et exécuter la preuve MinIO ;
 - un RabbitMQ 3.10+ pour lancer le worker, avec les capacités de quorum queue
   décrites dans [worker/README.md](worker/README.md).
+- accès Tailscale si une ressource interne privée doit être consultée hors
+  cluster.
 
 Aucun chemin personnel n'est requis. Les scripts résolvent leurs chemins depuis
 la racine du dépôt et acceptent les surcharges documentées par variables
 d'environnement.
+
+Les accès privés TrysCode doivent passer par Tailscale ou Services Kubernetes,
+jamais par une IP privée directe documentée en dur.
 
 Le moteur ODT détecte les exécutables `libreoffice` et `soffice`. Une
 installation non standard peut être indiquée avec `LIBREOFFICE_BIN`.
@@ -115,8 +120,46 @@ docker build --file worker/Dockerfile --tag tryscode/docgenerator-worker:dev wor
 L'image utilise une base Python référencée par digest, installe le lock avec
 `--require-hashes` et s'exécute avec l'UID/GID non privilégié `10001`.
 
+Les builds lourds ne doivent pas être lancés localement sur Emilia. Pour une
+preuve TrysCode, utiliser explicitement le builder Pupille ou la CI distante et
+conserver le digest d'image produit.
+
+## Déploiement
+
+Les changements courants partent sur `develop`. `main` reste réservé aux
+releases cohérentes. Les manifests de production doivent rester non-root,
+bornés en CPU, mémoire et stockage éphémère, puis vérifiés avec un digest
+immuable.
+
+## Sécurité
+
+Le worker ne doit pas journaliser les documents, données personnelles, secrets
+RabbitMQ, tokens Harmony ou endpoints privés directs. Les secrets restent dans
+le runtime et ne sont jamais versionnés.
+
+## Observabilité
+
+Le worker expose santé, statut et métriques locales en mode `safe_idle`. Toute
+preuve de production doit garder des logs bornés, corrélables et sans contenu
+documentaire.
+
+## Contribution
+
+Garder les changements atomiques, tester localement ce qui ne demande pas de
+build lourd, puis pousser sur `develop`.
+
 ## Statut juridique
 
 Le statut de licence est explicité dans [LICENSE_STATUS.md](LICENSE_STATUS.md).
 Cette documentation ne prétend pas qu'une entité ou certification inexistante
 aurait déjà été constituée ou obtenue.
+
+## Propriétaire
+
+Baptiste RENNESON BOUTARD / équipe workers TrysCode.
+
+## Limitations
+
+Le moteur ODT historique et le worker de documents ne prouvent pas à eux seuls
+la qualification complète stockage, RabbitMQ, Harmony et publication d'image en
+production.
