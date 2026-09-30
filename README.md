@@ -163,3 +163,90 @@ Baptiste RENNESON BOUTARD / équipe workers TrysCode.
 Le moteur ODT historique et le worker de documents ne prouvent pas à eux seuls
 la qualification complète stockage, RabbitMQ, Harmony et publication d'image en
 production.
+
+<!-- TRYS_REPOSITORY_DOCS:BEGIN -->
+# DocGenerator
+
+> Bloc généré depuis `repositories.yaml`. Les champs non prouvés restent volontairement marqués.
+
+## Rôle
+
+Produit de génération documentaire et worker RabbitMQ document_tasks.
+
+## Responsabilités
+
+TO_COMPLETE_WHEN_VERIFIED
+
+## Hors périmètre
+
+TO_COMPLETE_WHEN_VERIFIED
+
+## Architecture
+
+consumer Python + serveur HTTP interne
+
+## Prérequis
+
+workers, full
+
+## Installation
+
+TO_COMPLETE_WHEN_VERIFIED
+
+## Configuration
+
+TO_COMPLETE_WHEN_VERIFIED
+
+## Variables d'environnement
+
+TO_COMPLETE_WHEN_VERIFIED
+
+## Commandes
+
+TO_COMPLETE_WHEN_VERIFIED
+
+## Tests
+
+174 tests ; CI main 30217510398 verte
+
+## API et messages
+
+TO_COMPLETE_WHEN_VERIFIED
+
+## Sécurité
+
+TO_COMPLETE_WHEN_VERIFIED
+
+## Observabilité
+
+TO_COMPLETE_WHEN_VERIFIED
+
+## Déploiement
+
+ci_ready
+
+## Migrations
+
+TO_COMPLETE_WHEN_VERIFIED
+
+## Dépannage
+
+TO_COMPLETE_WHEN_VERIFIED
+
+## Contribution
+
+TO_COMPLETE_WHEN_VERIFIED
+
+## Licence et statut
+
+all_rights_reserved
+
+## Propriétaire
+
+Baptiste RENNESON BOUTARD
+
+## Limitations
+
+TO_COMPLETE_WHEN_VERIFIED
+
+<!-- TRYS_REPOSITORY_DOCS:END -->
